@@ -17,7 +17,7 @@ async fn main() {
   let config = {
     let file = File::open("config.json").expect("config.json doesn't exist");
     let reader = BufReader::new(file);
-    serde_json::from_reader::<BufReader<File>, Config>(reader).unwrap()
+    serde_json::from_reader::<BufReader<File>, Config>(reader).expect("Failed to read config.json")
   };
 
   let client_config = ClientConfig::new_simple(
@@ -32,7 +32,7 @@ async fn main() {
   let (mut incoming_messages, twitch_client) = 
     TwitchIRCClient::<SecureTCPTransport, StaticLoginCredentials>::new(client_config);
 
-  twitch_client.join(config.username).unwrap();
+  twitch_client.join(config.username).expect("Unable to join chat");
 
   let mut ratelimiter = Ratelimiter::new(config.timeout);
   let chat_game_data = game_data.clone();
@@ -65,11 +65,11 @@ async fn main() {
 
   let url = "ws://localhost:20727/tokens";
 
-  let (ws_stream, _) = connect_async(url).await.unwrap();
+  let (ws_stream, _) = connect_async(url).await.expect("Unable to connect to StreamCompanion");
 
   let (mut ws_write, ws_read) = ws_stream.split();
 
-  ws_write.send(Message::Text(r#"["artistRoman", "titleRoman", "diffName", "creator", "mapid", "skin"]"#.to_owned())).await.unwrap();
+  ws_write.send(Message::Text(r#"["artistRoman", "titleRoman", "diffName", "creator", "mapid", "skin"]"#.to_owned())).await.expect("Unable to initialize StreamCompanion tokens");
 
   let ws_game_data = game_data.clone();
   let ws_handle = ws_read.for_each(|message| async {
