@@ -9,6 +9,12 @@ Simple self-host twitch chat bot for osu! streamers
 * `!np` - show current beatmap
 * `!skin` - show current skin
 
+## How to setup
+
+1. Place `rosu-np.exe` into a separate folder
+
+2. Create `config.json` in the same folder and fill it with [your configuration](/#config)
+
 ## Config
 
 ```json
