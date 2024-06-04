@@ -1,0 +1,13 @@
+[package]
+name = "rosu-np"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+futures-util = "0.3.30"
+serde = "1.0.203"
+serde_derive = "1.0.203"
+serde_json = "1.0.117"
+tokio = { version = "1.38.0", features = ["full"] }
+tokio-tungstenite = "0.23.0"
+twitch-irc = "5.0.1"
