@@ -15,6 +15,8 @@ Simple self-host twitch chat bot for osu! streamers
 
 2. Create `config.json` in the same folder and fill it with [your configuration](#config)
 
+  * Running `rosu-np.exe` without a configuration file creates an example one.
+
 ## Config
 
 ```json
