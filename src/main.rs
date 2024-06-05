@@ -1,89 +1,53 @@
-use std::{fs::File, io::BufReader, sync::Arc};
+use std::{fs::File, io::{BufReader, Write}, sync::Arc};
 
 use config::Config;
 use data::GameData;
-use futures_util::{SinkExt, StreamExt};
-use ratelimit::Ratelimiter;
 use tokio::sync::Mutex;
-use tokio_tungstenite::{connect_async, tungstenite::Message};
-use twitch_irc::{login::StaticLoginCredentials, message::ServerMessage, ClientConfig, SecureTCPTransport, TwitchIRCClient};
+use twitch_thread::twitch_thread;
+use sc_thread::sc_thread;
 
 mod config;
 mod data;
 mod ratelimit;
+mod sc_thread;
+mod twitch_thread;
 
 #[tokio::main]
 async fn main() {
   let config = {
-    let file = File::open("config.json").expect("config.json doesn't exist");
+    let file = match File::open("config.json") {
+      Ok(file) => file,
+      Err(_) => {
+        let mut file = File::create("config.json").expect("Unable to create an example config");
+
+        let example_config = Config::example();
+        file.write(serde_json::to_vec_pretty(&example_config).unwrap().as_slice()).expect("Unable to write example config");
+
+        println!("An example config has been created!");
+
+        return;
+      },
+    };
+
     let reader = BufReader::new(file);
     serde_json::from_reader::<BufReader<File>, Config>(reader).expect("Failed to read config.json")
   };
 
-  let client_config = ClientConfig::new_simple(
-    StaticLoginCredentials::new(
-      config.username.clone(),
-      Some(config.token.clone())
-    )
-  );
-
   let game_data = Arc::new(Mutex::new(GameData::default()));
 
-  let (mut incoming_messages, twitch_client) = 
-    TwitchIRCClient::<SecureTCPTransport, StaticLoginCredentials>::new(client_config);
+  let chat_handle = {
+    let chat_game_data = game_data.clone();
+    tokio::spawn(async move {
+      twitch_thread(&config, chat_game_data).await
+    })
+  };
 
-  twitch_client.join(config.username).expect("Unable to join chat");
+  let sc_handle = {
+    let sc_game_data = game_data.clone();
+    tokio::spawn(async move {
+      sc_thread(sc_game_data).await
+    })
+  };
 
-  let mut ratelimiter = Ratelimiter::new(config.timeout);
-  let chat_game_data = game_data.clone();
-  let chat_handle = tokio::spawn(async move {
-    while let Some(server_message) = incoming_messages.recv().await {
-      match server_message {
-        ServerMessage::Privmsg(message) => {
-          match message.message_text.as_str() {
-            "!np" => {
-              if !ratelimiter.trigger("np".to_owned()) {
-                continue;
-              }
-              let game_data = chat_game_data.lock().await;
-              twitch_client.say_in_reply_to(&message, game_data.get_beatmap_string()).await.unwrap();
-            },
-            "!skin" => {
-              if !ratelimiter.trigger("skin".to_owned()) {
-                continue;
-              }
-              let game_data = chat_game_data.lock().await;
-              twitch_client.say_in_reply_to(&message, game_data.get_skin()).await.unwrap();
-            },
-            _ => (),
-          }
-        },
-        _ => (),
-      }
-    }
-  });
-
-  let url = "ws://localhost:20727/tokens";
-
-  let (ws_stream, _) = connect_async(url).await.expect("Unable to connect to StreamCompanion");
-
-  let (mut ws_write, ws_read) = ws_stream.split();
-
-  ws_write.send(Message::Text(r#"["artistRoman", "titleRoman", "diffName", "creator", "mapid", "skin"]"#.to_owned())).await.expect("Unable to initialize StreamCompanion tokens");
-
-  let ws_game_data = game_data.clone();
-  let ws_handle = ws_read.for_each(|message| async {
-    if let Ok(message) = message {
-      if let Message::Text(data) = message {
-        let new_data = serde_json::from_str::<data::GameData>(&data).unwrap();
-        let mut game_data = ws_game_data.lock().await;
-        game_data.update(new_data);
-      }
-    }
-  });
-
-  println!("Initialized?");
-
-  ws_handle.await;
-  chat_handle.await.unwrap();
+  let _ = tokio::join!(chat_handle, sc_handle);
 }
