@@ -6,11 +6,15 @@ use tokio::sync::Mutex;
 use twitch_thread::twitch_thread;
 use sc_thread::sc_thread;
 
+#[cfg(not(debug_assertions))]
+use updates::check_for_updates;
+
 mod config;
 mod data;
 mod ratelimit;
 mod sc_thread;
 mod twitch_thread;
+mod updates;
 
 #[tokio::main]
 async fn main() {
@@ -32,6 +36,9 @@ async fn main() {
     let reader = BufReader::new(file);
     serde_json::from_reader::<BufReader<File>, Config>(reader).expect("Failed to read config.json")
   };
+
+  #[cfg(not(debug_assertions))]
+  check_for_updates().await;
 
   let game_data = Arc::new(Mutex::new(GameData::default()));
 
