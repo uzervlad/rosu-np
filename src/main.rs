@@ -1,8 +1,9 @@
-use std::{fs::File, io::{BufReader, Write}, sync::Arc};
+use std::{fs::File, io::BufReader, sync::Arc};
 
 use config::Config;
 use data::GameData;
 use tokio::sync::Mutex;
+use twitch_login::twitch_login;
 use twitch_thread::twitch_thread;
 use sc_thread::sc_thread;
 
@@ -14,31 +15,31 @@ mod data;
 mod ratelimit;
 mod sc_thread;
 mod twitch_thread;
+mod twitch_login;
 mod updates;
 
 #[tokio::main]
 async fn main() {
-  let config = {
-    let file = match File::open("config.json") {
-      Ok(file) => file,
-      Err(_) => {
-        let mut file = File::create("config.json").expect("Unable to create an example config");
-
-        let example_config = Config::example();
-        file.write_all(serde_json::to_vec_pretty(&example_config).unwrap().as_slice()).expect("Unable to write example config");
-
-        println!("An example config has been created!");
-
-        return;
-      },
-    };
-
-    let reader = BufReader::new(file);
-    serde_json::from_reader::<BufReader<File>, Config>(reader).expect("Failed to read config.json")
-  };
-
   #[cfg(not(debug_assertions))]
   check_for_updates().await;
+  
+  let config =  match File::open("config.json") {
+    Ok(file) => {
+      let reader = BufReader::new(file);
+      serde_json::from_reader::<BufReader<File>, Config>(reader).expect("Failed to read config.json")
+    }
+    Err(_) => {
+      let config = match twitch_login().await {
+        Ok(config) => config,
+        Err(e) => {
+          println!("Something horrible happened: {}", e);
+          return
+        }
+      };
+
+      config
+    },
+  };
 
   let game_data = Arc::new(Mutex::new(GameData::default()));
 

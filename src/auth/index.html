@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <span>Obtaining user information...</span>  
+</body>
+<script>
+  let span = document.querySelector('span');
+
+  let token = location.hash.match(/access_token=(\w+)&/);
+
+  fetch(`/token?${token[1]}`)
+    .then(r => r.json())
+    .then(r => {
+      if(!r.success) {
+        span.innerText = `Error: ${r.message}`;
+      } else {
+        span.innerText = "Configuration succeeded, you can close this page";
+      }
+    });
+</script>
+</html>
