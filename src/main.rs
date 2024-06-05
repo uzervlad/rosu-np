@@ -21,7 +21,7 @@ async fn main() {
         let mut file = File::create("config.json").expect("Unable to create an example config");
 
         let example_config = Config::example();
-        file.write(serde_json::to_vec_pretty(&example_config).unwrap().as_slice()).expect("Unable to write example config");
+        file.write_all(serde_json::to_vec_pretty(&example_config).unwrap().as_slice()).expect("Unable to write example config");
 
         println!("An example config has been created!");
 

@@ -6,7 +6,7 @@ use tokio_tungstenite::{connect_async, tungstenite::Message};
 
 use crate::data::GameData;
 
-const INIT_MESSAGE: &'static str = r#"[
+const INIT_MESSAGE: &str = r#"[
   "artistRoman",
   "titleRoman",
   "diffName",
@@ -44,12 +44,10 @@ pub async fn sc_thread(game_data: Arc<Mutex<GameData>>) {
 
     let ws_game_data = game_data.clone();
     ws_read.for_each(|message| async {
-      if let Ok(message) = message {
-        if let Message::Text(data) = message {
-          let new_data = serde_json::from_str::<GameData>(&data).unwrap();
-          let mut game_data = ws_game_data.lock().await;
-          game_data.update(new_data);
-        }
+      if let Ok(Message::Text(data)) = message {
+        let new_data = serde_json::from_str::<GameData>(&data).unwrap();
+        let mut game_data = ws_game_data.lock().await;
+        game_data.update(new_data);
       }
     }).await;
 

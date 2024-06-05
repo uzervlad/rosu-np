@@ -33,31 +33,28 @@ pub async fn twitch_thread(config: &Config, game_data: Arc<Mutex<GameData>>) {
     let chat_game_data = game_data.clone();
 
     while let Some(server_message) = incoming_messages.recv().await {
-      match server_message {
-        ServerMessage::Privmsg(message) => {
-          match message.message_text.as_str() {
-            "!np" => {
-              if !ratelimiter.trigger("np".to_owned()) {
-                continue;
-              }
-              let game_data = chat_game_data.lock().await;
-              if let Err(e) = client.say_in_reply_to(&message, game_data.get_beatmap_string()).await {
-                println!("Failed to reply: {}", e);
-              }
-            },
-            "!skin" => {
-              if !ratelimiter.trigger("skin".to_owned()) {
-                continue;
-              }
-              let game_data = chat_game_data.lock().await;
-              if let Err(e) = client.say_in_reply_to(&message, game_data.get_skin()).await {
-                println!("Failed to reply: {}", e);
-              }
-            },
-            _ => (),
-          }
-        },
-        _ => (),
+      if let ServerMessage::Privmsg(message) = server_message {
+        match message.message_text.as_str() {
+          "!np" => {
+            if !ratelimiter.trigger("np".to_owned()) {
+              continue;
+            }
+            let game_data = chat_game_data.lock().await;
+            if let Err(e) = client.say_in_reply_to(&message, game_data.get_beatmap_string()).await {
+              println!("Failed to reply: {}", e);
+            }
+          },
+          "!skin" => {
+            if !ratelimiter.trigger("skin".to_owned()) {
+              continue;
+            }
+            let game_data = chat_game_data.lock().await;
+            if let Err(e) = client.say_in_reply_to(&message, game_data.get_skin()).await {
+              println!("Failed to reply: {}", e);
+            }
+          },
+          _ => (),
+        }
       }
     }
 
