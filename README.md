@@ -7,6 +7,7 @@ Simple self-host twitch chat bot for osu! streamers
 ## Available commands
 
 * `!np` - show current beatmap
+* `!pp` - show PP for current beatmap (+ with mods)
 * `!skin` - show current skin
 
 ## How to setup

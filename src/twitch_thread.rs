@@ -44,6 +44,15 @@ pub async fn twitch_thread(config: &Config, game_data: Arc<Mutex<GameData>>) {
               println!("Failed to reply: {}", e);
             }
           },
+          "!pp" => {
+            if !ratelimiter.trigger("pp".to_owned()) {
+              continue;
+            }
+            let game_data = chat_game_data.lock().await;
+            if let Err(e) = client.say_in_reply_to(&message, game_data.get_pp_string()).await {
+              println!("Failed to reply: {}", e);
+            }
+          },
           "!skin" => {
             if !ratelimiter.trigger("skin".to_owned()) {
               continue;
