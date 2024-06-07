@@ -23,21 +23,17 @@ async fn main() {
   #[cfg(not(debug_assertions))]
   check_for_updates().await;
   
-  let config =  match File::open("config.json") {
+  let config = match File::open("config.json") {
     Ok(file) => {
       let reader = BufReader::new(file);
       serde_json::from_reader::<BufReader<File>, Config>(reader).expect("Failed to read config.json")
     }
-    Err(_) => {
-      let config = match twitch_login().await {
-        Ok(config) => config,
-        Err(e) => {
-          println!("Something horrible happened: {}", e);
-          return
-        }
-      };
-
-      config
+    Err(_) => match twitch_login().await {
+      Ok(config) => config,
+      Err(e) => {
+        println!("Something horrible happened: {}", e);
+        return
+      }
     },
   };
 

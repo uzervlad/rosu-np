@@ -46,9 +46,9 @@ impl ServerResponse {
   }
 }
 
-impl Into<Bytes> for ServerResponse {
-  fn into(self) -> Bytes {
-    serde_json::to_vec(&self).unwrap().into()
+impl From<ServerResponse> for Bytes {
+  fn from(val: ServerResponse) -> Bytes {
+    serde_json::to_vec(&val).unwrap().into()
   }
 }
 
