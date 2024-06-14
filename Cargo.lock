@@ -859,6 +859,7 @@ dependencies = [
  "hyper",
  "hyper-util",
  "reqwest",
+ "rosu-np-macros",
  "semver",
  "serde",
  "serde_derive",
@@ -866,6 +867,15 @@ dependencies = [
  "tokio",
  "tokio-tungstenite",
  "twitch-irc",
+]
+
+[[package]]
+name = "rosu-np-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

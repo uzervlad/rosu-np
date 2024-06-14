@@ -1,38 +1,8 @@
+use rosu_np_macros::partial_struct;
 use serde_derive::Deserialize;
 
-macro_rules! generate_structs {
-  ($struct_name:ident, $partial_name:ident, $($name:ident: $type:ty [$token:literal],)+) => {
-    #[derive(Debug, Default)]
-    pub struct $struct_name {
-      $($name: $type,)*
-    }
-
-    impl $struct_name {
-      pub fn update(&mut self, new_data: $partial_name) {
-        $(
-          if let Some($name) = new_data.$name {
-            self.$name = $name;
-          }
-        )*
-      }
-
-      pub fn get_keys() -> Vec<&'static str> {
-        vec![$($token,)*]
-      }
-    }
-
-    #[derive(Deserialize)]
-    pub struct $partial_name {
-      $(
-        #[serde(rename = $token)]
-        $name: Option<$type>,
-      )*
-    }
-  };
-}
-
-generate_structs! {
-  GameData, PartialGameData,
+partial_struct! {
+  GameData,
 
   artist: String ["artistRoman"],
   title: String ["titleRoman"],
@@ -53,7 +23,7 @@ generate_structs! {
   gamemode: String ["gameMode"],
 
   pp_mania: f32 ["mania_1_000_000PP"],
-  pp_mods_mania: f32 ["mania_m1_000_000PP"],
+  pp_mods_mania: f32 ["mania_m1_000_000PP"]
 }
 
 impl GameData {
