@@ -82,6 +82,7 @@ async fn accept_token(req: Request<hyper::body::Incoming>, sender: UnboundedSend
     username: login,
     token: token.to_owned(),
     timeout: 5,
+    ..Config::default()
   };
   file.write_all(serde_json::to_vec_pretty(&config).unwrap().as_slice()).expect("Unable to write a config");
 

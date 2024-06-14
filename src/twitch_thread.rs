@@ -17,7 +17,12 @@ pub async fn twitch_thread(config: &Config, game_data: Arc<Mutex<GameData>>) {
     let (mut incoming_messages, client) =
       TwitchIRCClient::<SecureTCPTransport, StaticLoginCredentials>::new(client_config);
 
-    match client.join(config.username.clone()) {
+    let channel = match config.channel.as_ref() {
+      Some(channel) => channel.clone(),
+      None => config.username.clone(),
+    };
+
+    match client.join(channel) {
       Ok(_) => {
         println!("Joined channel!");
       }
