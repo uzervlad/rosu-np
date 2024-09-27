@@ -78,7 +78,7 @@ async fn accept_token(req: Request<hyper::body::Incoming>, sender: UnboundedSend
     Err(e) => return Ok(Response::new(Full::new(ServerResponse::not_ok(e.to_string()).into()))),
   };
 
-  let mut file = File::create("config.json").expect("Unable to create a config");
+  let mut file = File::create("config.ron").expect("Unable to create a config");
   let config = Config {
     username: login,
     token: token.to_owned(),
