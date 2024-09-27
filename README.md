@@ -2,7 +2,7 @@
 
 Simple self-host twitch chat bot for osu! streamers
 
-> ⚠ ***Requires StreamCompanion!***
+> ⚠ ***Requires [tosu](https://tosu.app/)!***
 
 ## Available commands
 
@@ -20,10 +20,11 @@ Simple self-host twitch chat bot for osu! streamers
 
 ## Config example
 
-```json
-{
-  "username": "username",         // Twitch username
-  "token": "qwertyasdfgh123456",  // OAuth token (don't touch)
-  "timeout": 5                    // Command timeout in seconds
-}
+```ron
+(
+  username: "username",         // Twitch username
+  token: "qwertyasdfgh123456",  // OAuth token (don't touch)
+  source: Tosu,                 // osu! data source (currently only Tosu)
+  timeout: 5                    // Command timeout in seconds
+)
 ```

@@ -1,22 +1,13 @@
 use std::{fs::File, io::BufReader, sync::Arc};
 
-use config::Config;
-use data::GameData;
+use rosu_np::config::Config;
+use rosu_np::data::GameData;
 use tokio::sync::Mutex;
-use twitch_login::twitch_login;
-use twitch_thread::twitch_thread;
-use sc_thread::sc_thread;
+use rosu_np::twitch_login::twitch_login;
+use rosu_np::twitch_thread::twitch_thread;
 
 #[cfg(not(debug_assertions))]
 use updates::check_for_updates;
-
-mod config;
-mod data;
-mod ratelimit;
-mod sc_thread;
-mod twitch_thread;
-mod twitch_login;
-mod updates;
 
 #[tokio::main]
 async fn main() {
@@ -39,6 +30,11 @@ async fn main() {
 
   let game_data = Arc::new(Mutex::new(GameData::default()));
 
+  let update_handle = {
+    let update_game_data = game_data.clone();
+    config.source.create(update_game_data)
+  };
+
   let chat_handle = {
     let chat_game_data = game_data.clone();
     tokio::spawn(async move {
@@ -46,12 +42,5 @@ async fn main() {
     })
   };
 
-  let sc_handle = {
-    let sc_game_data = game_data.clone();
-    tokio::spawn(async move {
-      sc_thread(sc_game_data).await
-    })
-  };
-
-  let _ = tokio::join!(chat_handle, sc_handle);
+  let _ = tokio::join!(chat_handle, update_handle);
 }

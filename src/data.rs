@@ -1,7 +1,37 @@
-use serde_derive::Deserialize;
+#[derive(Debug, Default, Clone, Copy)]
+pub enum GameMode {
+  #[default]
+  Osu,
+  Taiko,
+  Catch,
+  Mania,
+}
+
+impl Into<GameMode> for u8 {
+  fn into(self) -> GameMode {
+    match self {
+      0 => GameMode::Osu,
+      1 => GameMode::Taiko,
+      2 => GameMode::Catch,
+      3 => GameMode::Mania,
+      _ => unreachable!(),
+    }
+  }
+}
+
+impl Into<u8> for GameMode {
+  fn into(self) -> u8 {
+    match self {
+      GameMode::Osu => 0,
+      GameMode::Taiko => 1,
+      GameMode::Catch => 2,
+      GameMode::Mania => 3,
+    }
+  }
+}
 
 macro_rules! generate_structs {
-  ($struct_name:ident, $partial_name:ident, $($name:ident: $type:ty [$token:literal],)+) => {
+  ($struct_name:ident, $partial_name:ident, $($name:ident: $type:ty,)+) => {
     #[derive(Debug, Default)]
     pub struct $struct_name {
       $($name: $type,)*
@@ -15,17 +45,12 @@ macro_rules! generate_structs {
           }
         )*
       }
-
-      pub fn get_keys() -> Vec<&'static str> {
-        vec![$($token,)*]
-      }
     }
 
-    #[derive(Deserialize)]
+    #[derive(Default)]
     pub struct $partial_name {
       $(
-        #[serde(rename = $token)]
-        $name: Option<$type>,
+        pub $name: Option<$type>,
       )*
     }
   };
@@ -34,26 +59,23 @@ macro_rules! generate_structs {
 generate_structs! {
   GameData, PartialGameData,
 
-  artist: String ["artistRoman"],
-  title: String ["titleRoman"],
-  version: String ["diffName"],
-  creator: String ["creator"],
-  mods: String ["mods"],
-  skin: String ["skin"],
-  map_id: u32 ["mapid"],
+  artist: String,
+  title: String,
+  version: String,
+  creator: String,
+  mods: String,
+  skin: String,
+  map_id: u32,
 
-  pp_98: f32 ["osu_98PP"],
-  pp_99: f32 ["osu_99PP"],
-  pp_ss: f32 ["osu_SSPP"],
+  pp_98: f32,
+  pp_99: f32,
+  pp_ss: f32,
 
-  pp_mods_98: f32 ["osu_m98PP"],
-  pp_mods_99: f32 ["osu_m99PP"],
-  pp_mods_ss: f32 ["osu_mSSPP"],
+  pp_mods_98: f32,
+  pp_mods_99: f32,
+  pp_mods_ss: f32,
 
-  gamemode: String ["gameMode"],
-
-  pp_mania: f32 ["mania_1_000_000PP"],
-  pp_mods_mania: f32 ["mania_m1_000_000PP"],
+  gamemode: GameMode,
 }
 
 impl GameData {
@@ -70,12 +92,15 @@ impl GameData {
   }
 
   pub fn get_pp_string(&self) -> String {
-    match (self.gamemode.as_str(), self.pp_mania == self.pp_mods_mania, self.pp_ss == self.pp_mods_ss) {
-      ("OsuMania", true, _) => format!("PP (1m): {:.1}", self.pp_mania),
-      ("OsuMania", false, _) => format!("PP (1m): {:.1} +{} {:.1}", self.pp_mania, self.get_mods(), self.pp_mods_mania),
-      (_, _, true) => format!("PP (98/99/100): {:.1}/{:.1}/{:.1}", self.pp_98, self.pp_99, self.pp_ss),
-      (_, _, false) => format!("PP (98/99/100): {:.1}/{:.1}/{:.1} +{} {:.1}/{:.1}/{:.1}", self.pp_98, self.pp_99, self.pp_ss, self.get_mods(), self.pp_mods_98, self.pp_mods_99, self.pp_mods_ss),
+    if self.pp_ss == self.pp_mods_ss {
+      format!("PP (98/99/100): {:.1}/{:.1}/{:.1}", self.pp_98, self.pp_99, self.pp_ss)
+    } else {
+      format!("PP (98/99/100): {:.1}/{:.1}/{:.1} +{} {:.1}/{:.1}/{:.1}", self.pp_98, self.pp_99, self.pp_ss, self.get_mods(), self.pp_mods_98, self.pp_mods_99, self.pp_mods_ss)
     }
+  }
+
+  pub fn get_game_mode(&self) -> GameMode {
+    self.gamemode
   }
 
   pub fn get_skin(&self) -> String {
