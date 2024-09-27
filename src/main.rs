@@ -7,7 +7,7 @@ use rosu_np::twitch_login::twitch_login;
 use rosu_np::twitch_thread::twitch_thread;
 
 #[cfg(not(debug_assertions))]
-use updates::check_for_updates;
+use rosu_np::updates::check_for_updates;
 
 #[tokio::main]
 async fn main() {
