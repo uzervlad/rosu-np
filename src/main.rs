@@ -23,10 +23,10 @@ async fn main() {
   #[cfg(not(debug_assertions))]
   check_for_updates().await;
   
-  let config = match File::open("config.json") {
+  let config = match File::open("config.ron") {
     Ok(file) => {
       let reader = BufReader::new(file);
-      serde_json::from_reader::<BufReader<File>, Config>(reader).expect("Failed to read config.json")
+      ron::de::from_reader::<BufReader<File>, Config>(reader).expect("Failed to read config.json")
     }
     Err(_) => match twitch_login().await {
       Ok(config) => config,

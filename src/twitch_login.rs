@@ -1,9 +1,10 @@
-use std::{fs::File, io::Write, net::SocketAddr};
+use std::{fs::File, io::BufWriter, net::SocketAddr};
 
 use http_body_util::Full;
 use hyper::{body::Bytes, server::conn::http1, service::service_fn, Request, Response};
 use hyper_util::rt::TokioIo;
 use reqwest::Client;
+use ron::ser::PrettyConfig;
 use serde_derive::{Deserialize, Serialize};
 use tokio::{net::TcpListener, sync::mpsc::{self, UnboundedSender}};
 use eyre::Result;
@@ -84,7 +85,8 @@ async fn accept_token(req: Request<hyper::body::Incoming>, sender: UnboundedSend
     timeout: 5,
     ..Config::default()
   };
-  file.write_all(serde_json::to_vec_pretty(&config).unwrap().as_slice()).expect("Unable to write a config");
+  let writer = BufWriter::new(&mut file);
+  ron::ser::to_writer_pretty(writer, &config, PrettyConfig::default()).expect("Unable to write a config");
 
   let _ = sender.send(config);
 
