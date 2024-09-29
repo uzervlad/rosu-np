@@ -4,10 +4,10 @@ Simple self-host twitch chat bot for osu! streamers
 
 > ⚠ ***Requires [tosu](https://tosu.app/)!***
 
-## Available commands
+## Default commands
 
 * `!np` - show current beatmap
-* `!pp` - show PP for current beatmap (+ with mods)
+* `!pp` - show PP for current beatmap (with mods)
 * `!skin` - show current skin
 
 ## How to setup
@@ -29,17 +29,17 @@ Default replies can be found [here](src/config.rs)
 <details>
   <summary>Supported tokens</summary>
   
-  - `artist`
-  - `title`
+  - `artist`/`artist_unicode`
+  - `title`/`title_unicode`
   - `version` - difficulty name
   - `creator`
   - `mods` - has a `+` in front when mods are selected
   - `skin`
   - `map_id`
   - `link` - beatmap link, empty when `map_id` is 0
-  - `pp_98`
-  - `pp_99`
-  - `pp_ss`
+  - `stars`
+  - `cs`/`ar`/`od`/`hp`
+  - `pp_95`/`pp_96`/`pp_97`/`pp_98`/`pp_99`/`pp_ss`
   - `gamemode` - `osu`/`taiko`/`catch`/`mania`
 </details>
 

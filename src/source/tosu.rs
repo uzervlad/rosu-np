@@ -18,17 +18,31 @@ struct TosuDataSettings {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct TosuDataMenuBeatmapMetadata {
   artist: String,
+  artist_original: String,
   title: String,
+  title_original: String,
   mapper: String,
   difficulty: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
+struct TosuDataMenuBeatmapStats {
+  sr: f32,
+  cs: f32,
+  ar: f32,
+  od: f32,
+  hp: f32,
 }
 
 #[derive(Deserialize)]
 struct TosuDataMenuBeatmap {
   id: u32,
   metadata: TosuDataMenuBeatmapMetadata,
+  stats: TosuDataMenuBeatmapStats,
 }
 
 #[derive(Deserialize)]
@@ -40,6 +54,12 @@ struct TosuDataMenuMods {
 
 #[derive(Deserialize)]
 struct TosuDataMenuPp {
+  #[serde(rename = "95")]
+  _95: f32,
+  #[serde(rename = "96")]
+  _96: f32,
+  #[serde(rename = "97")]
+  _97: f32,
   #[serde(rename = "98")]
   _98: f32,
   #[serde(rename = "99")]
@@ -67,12 +87,22 @@ impl Into<PartialGameData> for TosuData {
   fn into(self) -> PartialGameData {
     PartialGameData {
       artist: Some(self.menu.bm.metadata.artist),
+      artist_unicode: Some(self.menu.bm.metadata.artist_original),
       title: Some(self.menu.bm.metadata.title),
+      title_unicode: Some(self.menu.bm.metadata.title_original),
       version: Some(self.menu.bm.metadata.difficulty),
       creator: Some(self.menu.bm.metadata.mapper),
       mods: Some(self.menu.mods.str),
       skin: Some(self.settings.folders.skin),
       map_id: Some(self.menu.bm.id),
+      stars: Some(self.menu.bm.stats.sr),
+      cs: Some(self.menu.bm.stats.cs),
+      ar: Some(self.menu.bm.stats.ar),
+      od: Some(self.menu.bm.stats.od),
+      hp: Some(self.menu.bm.stats.hp),
+      pp_95: Some(self.menu.pp._95),
+      pp_96: Some(self.menu.pp._96),
+      pp_97: Some(self.menu.pp._97),
       pp_98: Some(self.menu.pp._98),
       pp_99: Some(self.menu.pp._99),
       pp_ss: Some(self.menu.pp._100),

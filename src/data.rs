@@ -75,13 +75,25 @@ generate_structs! {
   GameData, PartialGameData,
 
   artist: String,
+  artist_unicode: String,
   title: String,
+  title_unicode: String,
   version: String,
   creator: String,
+
   mods: String,
   skin: String,
   map_id: u32,
 
+  stars: f32,
+  cs: f32,
+  ar: f32,
+  od: f32,
+  hp: f32,
+
+  pp_95: f32,
+  pp_96: f32,
+  pp_97: f32,
   pp_98: f32,
   pp_99: f32,
   pp_ss: f32,
@@ -113,16 +125,32 @@ impl GameData {
   pub fn get_formatted_string(&self, string: &str) -> Result<String, FmtError> {
     let vars = HashMap::from([
       ("artist".to_owned(), self.artist.clone()),
+      ("artist_unicode".to_owned(), self.artist_unicode.clone()),
       ("title".to_owned(), self.title.clone()),
+      ("title_unicode".to_owned(), self.title_unicode.clone()),
       ("version".to_owned(), self.version.clone()),
       ("creator".to_owned(), self.creator.clone()),
+
       ("mods".to_owned(), self.get_mods()),
+
       ("skin".to_owned(), self.skin.clone()),
+
       ("map_id".to_owned(), self.map_id.to_string()),
       ("link".to_owned(), self.get_beatmap_link()),
+
+      ("stars".to_owned(), self.stars.round().to_string()),
+      ("cs".to_owned(), self.cs.round().to_string()),
+      ("ar".to_owned(), self.ar.round().to_string()),
+      ("od".to_owned(), self.od.round().to_string()),
+      ("hp".to_owned(), self.hp.round().to_string()),
+
+      ("pp_95".to_owned(), self.pp_95.round().to_string()),
+      ("pp_96".to_owned(), self.pp_96.round().to_string()),
+      ("pp_97".to_owned(), self.pp_97.round().to_string()),
       ("pp_98".to_owned(), self.pp_98.round().to_string()),
       ("pp_99".to_owned(), self.pp_99.round().to_string()),
       ("pp_ss".to_owned(), self.pp_ss.round().to_string()),
+
       ("gamemode".to_owned(), self.gamemode.to_string()),
     ]);
 
