@@ -39,60 +39,34 @@ pub async fn twitch_thread(config: &Config, game_data: Arc<Mutex<GameData>>) {
 
     while let Some(server_message) = incoming_messages.recv().await {
       if let ServerMessage::Privmsg(message) = server_message {
-        match message.message_text.as_str() {
-          "!np" => {
-            if !ratelimiter.trigger("np".to_owned()) {
-              continue;
-            }
-            let game_data = chat_game_data.lock().await;
-            let template = config.get_template("np").unwrap();
-            match game_data.get_formatted_string(&template) {
-              Ok(reply) => {
-                if let Err(e) = client.say_in_reply_to(&message, reply).await {
-                  println!("Failed to reply: {}", e);
-                }
-              },
-              Err(e) => {
-                println!("Failed to get formatted string: {}", e);
-              }
-            }
-          },
-          "!pp" => {
-            if !ratelimiter.trigger("pp".to_owned()) {
-              continue;
-            }
-            let game_data = chat_game_data.lock().await;
-            let template = config.get_template("pp").unwrap();
-            match game_data.get_formatted_string(&template) {
-              Ok(reply) => {
-                if let Err(e) = client.say_in_reply_to(&message, reply).await {
-                  println!("Failed to reply: {}", e);
-                }
-              },
-              Err(e) => {
-                println!("Failed to get formatted string: {}", e);
-              }
+        let content = message.message_text.as_str();
+
+        if !content.starts_with("!") {
+          continue
+        }
+
+        let Some(command) = &content[1..].split_whitespace().next() else {
+          continue
+        };
+
+        if !ratelimiter.trigger(command.to_string()) {
+          continue;
+        }
+
+        let game_data = chat_game_data.lock().await;
+        let Some(template) = config.get_template(*command) else {
+          continue
+        };
+        
+        match game_data.get_formatted_string(&template) {
+          Ok(reply) => {
+            if let Err(e) = client.say_in_reply_to(&message, reply).await {
+              println!("Failed to reply: {}", e);
             }
           },
-          "!skin" => {
-            if !ratelimiter.trigger("skin".to_owned()) {
-              continue;
-            }
-            let game_data = chat_game_data.lock().await;
-            let template = config.get_template("skin").unwrap();
-            match game_data.get_formatted_string(&template) {
-              Ok(reply) => {
-                if let Err(e) = client.say_in_reply_to(&message, reply).await {
-                  println!("Failed to reply: {}", e);
-                }
-              },
-              Err(e) => {
-                println!("Failed to get formatted string: {}", e);
-              }
-            }
-          },
-          // TODO: Custom commands
-          _ => (),
+          Err(e) => {
+            println!("Failed to get formatted string: {}", e);
+          }
         }
       }
     }

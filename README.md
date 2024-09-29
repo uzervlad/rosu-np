@@ -20,11 +20,11 @@ Simple self-host twitch chat bot for osu! streamers
 
 ## Customize commands
 
-You can customize replies to existing commands in the config, as described below
+You can customize replies to existing commands in the config (`templates`), as described below
+
+You can also add your own custom commands to `templates`
 
 Default replies can be found [here](src/config.rs)
-
-> Support for custom commands coming
 
 <details>
   <summary>Supported tokens</summary>
@@ -55,7 +55,8 @@ Default replies can be found [here](src/config.rs)
   templates: {                  // [Optional] Customizable reply templates
     "np": "{artist} - {title} [{version}] by {creator} {link}",
     "pp": "PP {mods} (98/99/100): {pp_98}/{pp_99}/{pp_ss}",
-    "skin": "Skin: {skin}"
+    "skin": "Skin: {skin}",
+    "test": "{map_id}"          // example custom command
   }
 )
 ```
