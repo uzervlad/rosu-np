@@ -51,7 +51,7 @@ Default replies can be found [here](src/config.rs)
   token: "qwertyasdfgh123456",  // OAuth token (don't touch)
   channel: "other_username",    // [Optional] Twitch channel to join
   source: Tosu,                 // osu! data source (currently only Tosu)
-  timeout: 5                    // Command timeout in seconds
+  timeout: 5                    // Command timeout in seconds (default: 5)
   templates: {                  // [Optional] Customizable reply templates
     "np": "{artist} - {title} [{version}] by {creator} {link}",
     "pp": "PP {mods} (98/99/100): {pp_98}/{pp_99}/{pp_ss}",

@@ -4,7 +4,7 @@ use serde_derive::{Deserialize, Serialize};
 
 use crate::source::DataSource;
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Config {
   pub username: String,
   pub token: String,
@@ -13,6 +13,19 @@ pub struct Config {
   pub timeout: u64,
   #[serde(default)]
   pub templates: HashMap<String, String>,
+}
+
+impl Default for Config {
+  fn default() -> Self {
+    Self {
+      username: String::new(),
+      token: String::new(),
+      channel: None,
+      source: DataSource::default(),
+      timeout: 5,
+      templates: HashMap::default(),
+    }
+  }
 }
 
 impl Config {

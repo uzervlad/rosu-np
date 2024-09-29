@@ -82,7 +82,6 @@ async fn accept_token(req: Request<hyper::body::Incoming>, sender: UnboundedSend
   let config = Config {
     username: login,
     token: token.to_owned(),
-    timeout: 5,
     ..Config::default()
   };
   let writer = BufWriter::new(&mut file);
