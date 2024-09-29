@@ -45,8 +45,16 @@ pub async fn twitch_thread(config: &Config, game_data: Arc<Mutex<GameData>>) {
               continue;
             }
             let game_data = chat_game_data.lock().await;
-            if let Err(e) = client.say_in_reply_to(&message, game_data.get_beatmap_string()).await {
-              println!("Failed to reply: {}", e);
+            let template = config.get_template("np").unwrap();
+            match game_data.get_formatted_string(&template) {
+              Ok(reply) => {
+                if let Err(e) = client.say_in_reply_to(&message, reply).await {
+                  println!("Failed to reply: {}", e);
+                }
+              },
+              Err(e) => {
+                println!("Failed to get formatted string: {}", e);
+              }
             }
           },
           "!pp" => {
@@ -54,8 +62,16 @@ pub async fn twitch_thread(config: &Config, game_data: Arc<Mutex<GameData>>) {
               continue;
             }
             let game_data = chat_game_data.lock().await;
-            if let Err(e) = client.say_in_reply_to(&message, game_data.get_pp_string()).await {
-              println!("Failed to reply: {}", e);
+            let template = config.get_template("pp").unwrap();
+            match game_data.get_formatted_string(&template) {
+              Ok(reply) => {
+                if let Err(e) = client.say_in_reply_to(&message, reply).await {
+                  println!("Failed to reply: {}", e);
+                }
+              },
+              Err(e) => {
+                println!("Failed to get formatted string: {}", e);
+              }
             }
           },
           "!skin" => {
@@ -63,10 +79,19 @@ pub async fn twitch_thread(config: &Config, game_data: Arc<Mutex<GameData>>) {
               continue;
             }
             let game_data = chat_game_data.lock().await;
-            if let Err(e) = client.say_in_reply_to(&message, game_data.get_skin()).await {
-              println!("Failed to reply: {}", e);
+            let template = config.get_template("skin").unwrap();
+            match game_data.get_formatted_string(&template) {
+              Ok(reply) => {
+                if let Err(e) = client.say_in_reply_to(&message, reply).await {
+                  println!("Failed to reply: {}", e);
+                }
+              },
+              Err(e) => {
+                println!("Failed to get formatted string: {}", e);
+              }
             }
           },
+          // TODO: Custom commands
           _ => (),
         }
       }

@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+
+use strfmt::{strfmt, FmtError};
+
 #[derive(Debug, Default, Clone, Copy)]
 pub enum GameMode {
   #[default]
@@ -27,6 +31,17 @@ impl Into<u8> for GameMode {
       GameMode::Catch => 2,
       GameMode::Mania => 3,
     }
+  }
+}
+
+impl ToString for GameMode {
+  fn to_string(&self) -> String {
+    match self {
+      GameMode::Osu => "osu",
+      GameMode::Taiko => "taiko",
+      GameMode::Catch => "catch",
+      GameMode::Mania => "mania",
+    }.to_owned()
   }
 }
 
@@ -71,31 +86,23 @@ generate_structs! {
   pp_99: f32,
   pp_ss: f32,
 
-  pp_mods_98: f32,
-  pp_mods_99: f32,
-  pp_mods_ss: f32,
-
   gamemode: GameMode,
 }
 
 impl GameData {
   fn get_mods(&self) -> String {
-    self.mods.split(',').collect::<String>()
-  }
-
-  pub fn get_beatmap_string(&self) -> String {
-    if self.map_id != 0 {
-      format!("{} - {} [{}] by {} https://osu.ppy.sh/b/{}", self.artist, self.title, self.version, self.creator, self.map_id)
+    if self.mods.len() == 0 {
+      "".to_owned()
     } else {
-      format!("{} - {} [{}] by {}", self.artist, self.title, self.version, self.creator)
+      format!("+{}",self.mods.split(',').collect::<String>())
     }
   }
 
-  pub fn get_pp_string(&self) -> String {
-    if self.pp_ss == self.pp_mods_ss {
-      format!("PP (98/99/100): {:.1}/{:.1}/{:.1}", self.pp_98, self.pp_99, self.pp_ss)
+  fn get_beatmap_link(&self) -> String {
+    if self.map_id == 0 {
+      "".to_owned()
     } else {
-      format!("PP (98/99/100): {:.1}/{:.1}/{:.1} +{} {:.1}/{:.1}/{:.1}", self.pp_98, self.pp_99, self.pp_ss, self.get_mods(), self.pp_mods_98, self.pp_mods_99, self.pp_mods_ss)
+      format!("https://osu.ppy.sh/b/{}", self.map_id)
     }
   }
 
@@ -103,7 +110,22 @@ impl GameData {
     self.gamemode
   }
 
-  pub fn get_skin(&self) -> String {
-    self.skin.clone()
+  pub fn get_formatted_string(&self, string: &str) -> Result<String, FmtError> {
+    let vars = HashMap::from([
+      ("artist".to_owned(), self.artist.clone()),
+      ("title".to_owned(), self.title.clone()),
+      ("version".to_owned(), self.version.clone()),
+      ("creator".to_owned(), self.creator.clone()),
+      ("mods".to_owned(), self.get_mods()),
+      ("skin".to_owned(), self.skin.clone()),
+      ("map_id".to_owned(), self.map_id.to_string()),
+      ("link".to_owned(), self.get_beatmap_link()),
+      ("pp_98".to_owned(), self.pp_98.round().to_string()),
+      ("pp_99".to_owned(), self.pp_99.round().to_string()),
+      ("pp_ss".to_owned(), self.pp_ss.round().to_string()),
+      ("gamemode".to_owned(), self.gamemode.to_string()),
+    ]);
+
+    strfmt(string, &vars)
   }
 }

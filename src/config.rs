@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde_derive::{Deserialize, Serialize};
 
 use crate::source::DataSource;
@@ -9,4 +11,19 @@ pub struct Config {
   pub channel: Option<String>,
   pub source: DataSource,
   pub timeout: u64,
+  #[serde(default)]
+  pub templates: HashMap<String, String>,
+}
+
+impl Config {
+  pub fn get_template(&self, name: &str) -> Option<String> {
+    self.templates.get(name).map(|s| s.clone()).or_else(|| {
+      match name {
+        "np" => Some("{artist} - {title} [{version}] by {creator} {link}".to_string()),
+        "pp" => Some("PP {mods} (98/99/100): {pp_98}/{pp_99}/{pp_ss}".to_string()),
+        "skin" => Some("Skin: {skin}".to_string()),
+        _ => None
+      }
+    })
+  }
 }

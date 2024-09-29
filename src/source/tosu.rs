@@ -63,7 +63,6 @@ struct TosuData {
   menu: TosuDataMenu,
 }
 
-
 impl Into<PartialGameData> for TosuData {
   fn into(self) -> PartialGameData {
     PartialGameData {
@@ -74,72 +73,32 @@ impl Into<PartialGameData> for TosuData {
       mods: Some(self.menu.mods.str),
       skin: Some(self.settings.folders.skin),
       map_id: Some(self.menu.bm.id),
-      pp_mods_98: Some(self.menu.pp._98),
-      pp_mods_99: Some(self.menu.pp._99),
-      pp_mods_ss: Some(self.menu.pp._100),
+      pp_98: Some(self.menu.pp._98),
+      pp_99: Some(self.menu.pp._99),
+      pp_ss: Some(self.menu.pp._100),
       gamemode: Some(self.menu.game_mode.into()),
       ..Default::default()
     }
   }
 }
 
-#[derive(Deserialize)]
-struct TosuPPResponse {
-  pp: f32,
-}
-
-async fn nomod_pp_thread(game_data: Arc<Mutex<GameData>>) {
-  loop {
-    let gamemode = game_data.lock().await.get_game_mode();
-    let (_98, _99, _100) = tokio::join!(
-      reqwest::get(format!("http://localhost:24050/api/calculate/pp?mode={}&acc=98", gamemode as u8)),
-      reqwest::get(format!("http://localhost:24050/api/calculate/pp?mode={}&acc=99", gamemode as u8)),
-      reqwest::get(format!("http://localhost:24050/api/calculate/pp?mode={}&acc=100", gamemode as u8))
-    );
-
-    match (_98, _99, _100) {
-      (Ok(r98), Ok(r99), Ok(r100)) => {
-        let (pp98, pp99, pp100) = tokio::join!(
-          r98.json::<TosuPPResponse>(),
-          r99.json::<TosuPPResponse>(),
-          r100.json::<TosuPPResponse>(),
-        );
-
-        if let (Ok(r98), Ok(r99), Ok(r100)) = (pp98, pp99, pp100) {
-          let data = PartialGameData {
-            pp_98: Some(r98.pp),
-            pp_99: Some(r99.pp),
-            pp_ss: Some(r100.pp),
-            ..Default::default()
-          };
-
-          let mut game_data = game_data.lock().await;
-          game_data.update(data);
-        }
-      }
-      _ => {}
-    }
-
-    tokio::time::sleep(Duration::from_secs(2)).await;
-  }
-}
-
+#[allow(unused_assignments)]
 pub async fn thread(game_data: Arc<Mutex<GameData>>) {
   let restart_timeout = Duration::from_secs(2);
 
   let url = "ws://localhost:24050/ws";
 
-  let nm_game_data = game_data.clone();
-  tokio::spawn(async move {
-    nomod_pp_thread(nm_game_data).await
-  });
+  let mut reconnecting = false;
 
   loop {
     let ws_stream = match connect_async(url).await {
       Ok((ws_stream, _)) => ws_stream,
       Err(e) => {
-        println!("Unable to connect to tosu: {}", e);
-        println!("Reconnecting...");
+        if !reconnecting {
+          println!("Unable to connect to tosu: {}", e);
+          println!("Reconnecting...");
+          reconnecting = true;
+        }
         tokio::time::sleep(restart_timeout).await;
         continue;
       }
@@ -147,6 +106,7 @@ pub async fn thread(game_data: Arc<Mutex<GameData>>) {
 
     let (_, ws_read) = ws_stream.split();
 
+    reconnecting = false;
     println!("Connected to tosu");
 
     let ws_game_data = game_data.clone();
@@ -160,6 +120,7 @@ pub async fn thread(game_data: Arc<Mutex<GameData>>) {
 
     println!("Disconnected from tosu");
     println!("Reconnecting...");
+    reconnecting = true;
     tokio::time::sleep(restart_timeout).await;
   }
 }
